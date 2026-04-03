@@ -7,11 +7,9 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    // 使用正确的 RouteHandlerClient
     const supabase = createRouteHandlerClient({ cookies })
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // 验证完成后跳转到首页
   return NextResponse.redirect(requestUrl.origin)
 }
