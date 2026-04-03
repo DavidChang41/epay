@@ -8,7 +8,9 @@ export async function GET(request: Request) {
   const next = searchParams.get('next') ?? '/'
 
   if (code) {
-    const cookieStore = cookies()
+    // 关键修复：在这里添加 await
+    const cookieStore = await cookies()
+    
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,6 +34,5 @@ export async function GET(request: Request) {
     }
   }
 
-  // 返回首页或错误页
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
