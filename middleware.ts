@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 
+// 关键修复：函数名必须改为 middleware
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
