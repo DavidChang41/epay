@@ -1,4 +1,4 @@
-import { createRouteHandlerServer } from '@supabase/auth-helpers-nextjs'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -7,10 +7,11 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    // 确保这里也是 createRouteHandlerServer
-    const supabase = createRouteHandlerServer({ cookies }) 
+    // 使用正确的 RouteHandlerClient
+    const supabase = createRouteHandlerClient({ cookies })
     await supabase.auth.exchangeCodeForSession(code)
   }
 
+  // 验证完成后跳转到首页
   return NextResponse.redirect(requestUrl.origin)
 }
