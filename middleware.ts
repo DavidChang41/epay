@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // 这里的 await 非常重要，和你在 route.ts 中写的一样
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
