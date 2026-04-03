@@ -1,8 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { cookies } from 'next/headers'
 
-// 关键修复：函数名必须改为 middleware
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -10,29 +8,48 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  const cookieStore = await cookies()
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: { headers: request.headers },
+          request.cookies.set({
+            name,
+            value,
+            ...options,
           })
-          response.cookies.set({ name, value, ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
         },
         remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: { headers: request.headers },
+          // 关键修复点：显式将 value 设为空字符串，不再使用简写
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
           })
-          response.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
