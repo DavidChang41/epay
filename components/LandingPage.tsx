@@ -1,206 +1,213 @@
 'use client'
+import { useState } from 'react'
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+
+// 1. 核心语言字典 - 确保所有文本都在这里定义
+const DICT = {
+  zh: {
+    nav: ['产品', '方案', '安全', '资费'],
+    login: '登录',
+    register: '立即开通',
+    heroTitle: '赋能全球',
+    heroSubTitle: '数字消费',
+    cardType: '场景分类',
+    cta: '立即开卡',
+    sceneTitle: '无地域限制 虚拟信用卡',
+    sceneSub: '让消费自由随行',
+    footerTitle: '支付本该更简单',
+    footerBtn: '立即免费注册',
+    exp: '有效期',
+    langLabel: 'English',
+    heroDesc: '立即开启账户，体验全球便捷跨境支付方案。'
+  },
+  en: {
+    nav: ['Product', 'Solution', 'Security', 'Price'],
+    login: 'Login',
+    register: 'Get Started',
+    heroTitle: 'Empowering',
+    heroSubTitle: 'Global Spend',
+    cardType: 'Category',
+    cta: 'Get Your Card',
+    sceneTitle: 'Limitless Virtual Cards',
+    sceneSub: 'Spend Freedom Anywhere',
+    footerTitle: 'Payment Made Simple',
+    footerBtn: 'Register Free Now',
+    exp: 'EXP',
+    langLabel: '中文',
+    heroDesc: 'Start your account now for seamless global payments.'
+  }
+}
+
+// 2. 幻灯片数据配置
+const SLIDES = [
+  { 
+    id: 'amazon', label: { zh: '海淘无忧', en: 'Global Shopping' }, title: 'Amazon', color: 'bg-[#FFDE6B]', 
+    text: { zh: '亚马逊支付隔离真实卡号。', en: 'Pay on Amazon with isolated card numbers.' },
+    logo: <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="h-5 w-auto" />
+  },
+  { 
+    id: 'chatgpt', label: { zh: 'AI高效', en: 'AI Productivity' }, title: 'OpenAI', color: 'bg-[#C5D9A5]', 
+    text: { zh: 'ChatGPT Plus稳定续费。', en: 'Stable ChatGPT Plus billing.' },
+    logo: <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT" className="h-8 w-auto opacity-90" />
+  },
+  { 
+    id: 'steam', label: { zh: '游戏自由', en: 'Gaming' }, title: 'Steam', color: 'bg-[#B2C6D1]', 
+    text: { zh: 'Steam跨区购省50%。', en: 'Save 50% on Steam regions.' },
+    logo: <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam" className="h-10 w-auto" />
+  }
+]
+
+// 3. 场景网格数据
+const SCENES = [
+  { title: "Adobe CC", color: "bg-[#B492F9]", size: "md:row-span-2", desc: { zh: "管理多账号支出。", en: "Manage multiple accounts." }, img: "🎨" },
+  { title: "Peloton", color: "bg-[#FF7898]", size: "md:col-span-1", desc: { zh: "随时取消订阅。", en: "Cancel anytime." }, img: "🚴" },
+  { title: "Spotify", color: "bg-[#C4E69D]", size: "md:col-span-1", desc: { zh: "避免地区限制。", en: "No geo-restrictions." }, img: "🎧" },
+  { title: "GitHub", color: "bg-[#FFDE6B]", size: "md:col-span-1", desc: { zh: "工具一键采购。", en: "Procure tools easily." }, img: "💻" },
+  { title: "Nintendo", color: "bg-[#FF9B67]", size: "md:col-span-2", desc: { zh: "跨区低价购游戏。", en: "Regional game discounts." }, img: "🎮" },
+  { title: "Booking", color: "bg-[#C4D7E6]", size: "md:col-span-1", desc: { zh: "锁定汇率风险。", en: "Lock hotel rates." }, img: "🏨" }
+]
 
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
+  const [lang, setLang] = useState<'zh' | 'en'>('zh')
+  const [current, setCurrent] = useState(0)
+  const t = DICT[lang]
 
-  // 监听滚动，改变导航栏透明度
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // 3D 卡片动力学逻辑
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const rotateX = useTransform(useSpring(y, { stiffness: 150, damping: 20 }), [-0.5, 0.5], ["10deg", "-10deg"])
+  const rotateY = useTransform(useSpring(x, { stiffness: 150, damping: 20 }), [-0.5, 0.5], ["-10deg", "10deg"])
+
+  const toggleLang = () => setLang(lang === 'zh' ? 'en' : 'zh')
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-700">
+    <div className="min-h-screen bg-white font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden text-[#1D1D1F]">
       
-      {/* 1. 动态导航栏 */}
-      <nav className={`fixed top-0 w-full z-[100] transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm h-16' : 'bg-transparent h-24'
-      }`}>
-        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-          <div className="flex items-center gap-12">
-            <div className="text-3xl font-black text-blue-600 italic tracking-tighter cursor-pointer">EPAY</div>
-            <div className="hidden lg:flex items-center gap-8 text-[15px] font-bold text-slate-500">
-              <Link href="#features" className="hover:text-blue-600 transition-colors">产品功能</Link>
-              <Link href="#solutions" className="hover:text-blue-600 transition-colors">解决方案</Link>
-              <Link href="#safety" className="hover:text-blue-600 transition-colors">安全保障</Link>
-              <Link href="#pricing" className="hover:text-blue-600 transition-colors">资费标准</Link>
-            </div>
+      {/* --- 极简导航栏 --- */}
+      <nav className="fixed top-0 w-full h-16 z-50 bg-white/70 backdrop-blur-xl px-8 flex items-center justify-between border-b border-black/[0.03]">
+        <div className="flex items-center gap-10">
+          <div className="text-xl font-black italic text-blue-600 tracking-tighter uppercase">EPAY</div>
+          <div className="hidden lg:flex gap-6 text-[11px] font-bold text-black/30 uppercase italic">
+            {t.nav.map(i => <Link key={i} href="#" className="hover:text-black transition-colors">{i}</Link>)}
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-[15px] font-bold text-slate-600 px-4 py-2 hover:text-blue-600">登录</Link>
-            <Link href="/register" className="bg-blue-600 text-white px-8 py-3 rounded-full text-[15px] font-black shadow-xl shadow-blue-100 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
-              立即开通
-            </Link>
-          </div>
+        </div>
+        
+        <div className="flex items-center gap-5">
+          <button onClick={toggleLang} className="text-[10px] font-black uppercase tracking-widest px-2 py-1 border border-black/10 rounded hover:bg-black hover:text-white transition-all">
+            {t.langLabel}
+          </button>
+          <Link href="/login" className="text-xs font-bold text-black/50 italic uppercase">{t.login}</Link>
+          <Link href="/register" className="bg-blue-600 text-white px-5 py-2 rounded-full text-[10px] font-black shadow-lg hover:scale-105 transition-all uppercase tracking-widest">
+            {t.register}
+          </Link>
         </div>
       </nav>
 
-      {/* 2. Hero Section - 视觉核心 */}
-      <section className="relative pt-32 lg:pt-48 pb-20 overflow-hidden">
-        {/* 背景装饰元素 */}
-        <div className="absolute top-0 right-0 -z-10 w-[50%] h-[800px] bg-gradient-to-b from-blue-50/50 to-transparent rounded-bl-[200px]" />
-        <div className="absolute top-40 left-10 -z-10 w-72 h-72 bg-blue-400 opacity-5 blur-[120px] rounded-full" />
+      {/* --- Hero Section (解决了文字遮挡与中文残留) --- */}
+      <AnimatePresence mode="wait">
+        <motion.section 
+          key={`${lang}-${current}`}
+          className={`relative h-[90vh] flex flex-col items-center justify-center transition-colors duration-700 overflow-hidden ${SLIDES[current].color}`}
+        >
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.1] pointer-events-none mix-blend-overlay" />
 
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-            <div className="inline-flex items-center gap-3 px-5 py-2 bg-blue-600/5 border border-blue-600/10 rounded-full text-blue-600">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
-              </span>
-              <span className="text-xs font-black uppercase tracking-widest">Next Generation Payment</span>
-            </div>
-            
-            <h1 className="text-6xl lg:text-8xl font-black text-slate-900 leading-[1.05] tracking-tight">
-              赋能全球<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">数字消费</span>
-            </h1>
-            
-            <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-lg">
-              EPAY 提供专业级虚拟信用卡解决方案。支持广告投放、海外订阅及跨境采购，尊享秒级开卡与极致费率。
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-5">
-              <Link href="/register" className="px-12 py-6 bg-slate-900 text-white rounded-[24px] font-black text-lg shadow-2xl hover:bg-blue-600 hover:-translate-y-1 transition-all text-center">
-                立即开卡
-              </Link>
-              <div className="flex items-center gap-4 px-2">
-                <div className="flex -space-x-3">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className="w-10 h-10 rounded-full bg-slate-200 border-4 border-white shadow-sm overflow-hidden flex items-center justify-center font-bold text-[10px] text-slate-400">USER</div>
-                  ))}
-                </div>
-                <div className="text-sm">
-                  <p className="font-black text-slate-800 tracking-tight">12.5k+ 活跃用户</p>
-                  <p className="text-slate-400 font-medium italic">信任并选择 EPAY</p>
-                </div>
+          <div className="max-w-[1200px] w-full px-8 grid grid-cols-1 lg:grid-cols-12 items-center relative z-10 gap-8">
+            {/* 左侧文字区：使用字典变量 */}
+            <div className="lg:col-span-5">
+              <motion.h1 initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="text-[60px] lg:text-[84px] font-black leading-[0.85] tracking-tighter italic uppercase">
+                {t.heroTitle}<br /><span className="text-white">{t.heroSubTitle}</span>
+              </motion.h1>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm font-bold text-black/30 max-w-[320px] leading-tight italic mt-6">
+                {SLIDES[current].text[lang]} {t.heroDesc}
+              </motion.p>
+              <div className="mt-8">
+                <Link href="/register" className="bg-blue-600 text-white px-10 py-4 rounded-2xl text-lg font-black shadow-xl hover:bg-blue-700 transition-all inline-block uppercase italic">
+                  {t.cta}
+                </Link>
               </div>
             </div>
-          </div>
 
-          {/* 右侧：精细化卡片动效 */}
-          <div className="relative perspective-1000 group">
-            <div className="relative z-10 aspect-[1.58/1] w-full bg-gradient-to-br from-slate-800 to-slate-950 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] p-12 text-white flex flex-col justify-between transform rotate-[-6deg] group-hover:rotate-0 transition-all duration-1000 ease-out border border-white/10">
-              <div className="flex justify-between items-start">
-                <div className="text-3xl font-black italic">EPAY</div>
-                <div className="w-16 h-12 bg-gradient-to-br from-yellow-200 to-yellow-500 rounded-xl opacity-80" />
-              </div>
-              <div className="space-y-6">
-                <div className="text-3xl font-mono tracking-[0.3em] font-medium text-slate-200">**** **** **** 9918</div>
-                <div className="flex gap-12">
-                  <div>
-                    <p className="text-[10px] uppercase opacity-40 font-bold mb-1">Card Holder</p>
-                    <p className="text-sm font-bold tracking-widest uppercase">EPAY PREMIUM USER</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase opacity-40 font-bold mb-1">Expires</p>
-                    <p className="text-sm font-bold">12/28</p>
-                  </div>
+            {/* 中间手机样机：极细边框 */}
+            <div className="lg:col-span-4 flex justify-center perspective-1000">
+              <motion.div 
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  x.set((e.clientX - rect.left) / rect.width - 0.5)
+                  y.set((e.clientY - rect.top) / rect.height - 0.5)
+                }}
+                onMouseLeave={() => { x.set(0); y.set(0) }}
+                style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+                className="relative w-full max-w-[300px]"
+              >
+                <div className="aspect-[1/2] w-full bg-[#0D0D0D] rounded-[42px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] border-[2px] border-[#222] p-2 relative overflow-hidden">
+                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#222] rounded-b-xl z-20" />
+
+                   <div className="flex flex-col h-full bg-white rounded-[34px] p-5 pt-10 items-center">
+                      <div className="mb-6">{SLIDES[current].logo}</div>
+                      <h3 className="text-lg font-black italic tracking-tighter uppercase">{SLIDES[current].title}</h3>
+                      <p className="text-[8px] font-bold text-gray-300 tracking-widest uppercase mb-8">Authorized</p>
+                      
+                      <motion.div whileHover={{ scale: 1.05 }} className="w-full aspect-[1.58/1] bg-[#0A0A0A] rounded-xl p-4 flex flex-col justify-between border border-white/5 shadow-2xl relative overflow-hidden">
+                         <div className="flex justify-between items-start">
+                            <span className="text-[10px] font-black text-white italic">EPAY</span>
+                            <div className="w-7 h-5 bg-gradient-to-br from-yellow-500 to-yellow-200 rounded-sm" />
+                         </div>
+                         <div className="text-white text-[12px] font-mono italic">**** **** **** 8888</div>
+                         <span className="text-[7px] text-white/40 font-bold uppercase tracking-widest">{t.exp}: 12/28</span>
+                         <motion.div animate={{ x: ['-100%', '200%'] }} transition={{ duration: 3, repeat: Infinity }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12" />
+                      </motion.div>
+                      <div className="mt-auto mb-4 w-full h-10 bg-gray-50 rounded-xl flex items-center justify-center animate-pulse">
+                         <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Double Click to Pay</span>
+                      </div>
+                   </div>
                 </div>
+              </motion.div>
+            </div>
+
+            {/* 右侧控制区 */}
+            <div className="lg:col-span-3 flex flex-col lg:items-end gap-6 text-right">
+               <div>
+                  <span className="text-[9px] font-black text-black/15 tracking-[0.3em] uppercase block mb-1">{t.cardType}</span>
+                  <div className="text-xl font-black italic uppercase tracking-tighter">{SLIDES[current].label[lang]}</div>
+               </div>
+               <button onClick={() => setCurrent((p) => (p + 1) % SLIDES.length)} className="w-14 h-14 rounded-full bg-black text-white flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all text-xl">
+                 →
+               </button>
+            </div>
+          </div>
+        </motion.section>
+      </AnimatePresence>
+
+      {/* --- Bento Grid 场景区 --- */}
+      <section className="py-20 px-8 max-w-[1200px] mx-auto bg-white">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+          <h2 className="text-[48px] lg:text-[64px] font-black tracking-tighter leading-none italic uppercase">
+            {t.sceneTitle.split(' ')[0]}<br /><span className="text-blue-600">{t.sceneTitle.split(' ')[1]}</span>
+          </h2>
+          <p className="text-gray-400 text-xs font-bold italic max-w-[150px] text-right uppercase leading-tight">{t.sceneSub}</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[260px]">
+          {SCENES.map((scene, i) => (
+            <motion.div key={i} whileHover={{ y: -5 }} className={`${scene.color} ${scene.size} rounded-[32px] p-8 relative overflow-hidden group shadow-sm flex flex-col justify-between`}>
+              <div className="relative z-10">
+                <h3 className="text-2xl font-black tracking-tighter italic uppercase text-gray-900 mb-1">{scene.title}</h3>
+                <p className="text-[10px] font-bold text-black/20 leading-tight max-w-[130px] italic">{scene.desc[lang]}</p>
               </div>
-            </div>
-            {/* 第二张卡片叠加 */}
-            <div className="absolute top-10 -right-4 -z-10 aspect-[1.58/1] w-full bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[40px] shadow-2xl p-12 transform rotate-[6deg] group-hover:rotate-[12deg] transition-all duration-1000 border border-white/20 opacity-90" />
-          </div>
+              <div className="relative z-10 w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:bg-black group-hover:text-white transition-all text-base">↗</div>
+              <div className="absolute -right-4 -bottom-4 text-[120px] opacity-[0.05] rotate-12 transition-transform group-hover:rotate-0 pointer-events-none">{scene.img}</div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* 3. 合作伙伴流转 - 增加页面长度与真实感 */}
-      <section className="py-20 border-y border-slate-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="text-center text-xs font-black text-slate-300 uppercase tracking-[0.3em] mb-12">Supported Platforms</p>
-          <div className="flex flex-wrap justify-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all">
-             <div className="text-2xl font-black italic">OpenAI</div>
-             <div className="text-2xl font-black italic">Facebook</div>
-             <div className="text-2xl font-black italic">Google Ads</div>
-             <div className="text-2xl font-black italic">Amazon</div>
-             <div className="text-2xl font-black italic">Netflix</div>
-             <div className="text-2xl font-black italic">Midjourney</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. 详细特性区 */}
-      <section id="features" className="py-32 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <div className="grid grid-cols-2 gap-6">
-               {[
-                 { t: '50+ 场景', d: '深度适配主流应用', i: '🎯' },
-                 { t: '极速充值', d: '多种支付方式即时到账', i: '💸' },
-                 { t: '费用透明', d: '无隐形收费与维护费', i: '💎' },
-                 { t: '批量管理', d: '专为工作室与投放设计', i: '📊' }
-               ].map((item, i) => (
-                 <div key={i} className={`p-8 rounded-[32px] bg-white border border-slate-100 hover:shadow-xl transition-all ${i % 2 !== 0 ? 'mt-8' : ''}`}>
-                   <div className="text-3xl mb-4">{item.i}</div>
-                   <h4 className="font-black text-slate-800 mb-2">{item.t}</h4>
-                   <p className="text-sm text-slate-400 font-medium leading-relaxed">{item.d}</p>
-                 </div>
-               ))}
-            </div>
-            <div className="space-y-8">
-              <h2 className="text-5xl font-black text-slate-900 tracking-tight leading-tight">不仅是卡，<br />更是您的全球支付助手</h2>
-              <p className="text-lg text-slate-500 font-medium leading-relaxed">
-                EPAY 的每一项功能都旨在解决跨境消费中的痛点。从 Open AI 订阅到 Facebook 广告开票，我们为您抹平支付鸿沟。
-              </p>
-              <ul className="space-y-4">
-                {['实时汇率结算，拒绝套利', '一键生成账单报表', '全天候技术支持团队'].map((t, i) => (
-                  <li key={i} className="flex items-center gap-3 text-slate-700 font-bold">
-                    <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">✓</span>
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. 底部 CTA 区域 */}
-      <section className="py-32 px-6">
-        <div className="max-w-7xl mx-auto bg-blue-600 rounded-[60px] p-20 text-center text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48" />
-          <div className="relative z-10 space-y-10">
-            <h2 className="text-5xl md:text-6xl font-black tracking-tight">准备好开启<br />您的全球支付之旅了吗？</h2>
-            <p className="text-blue-100 text-xl font-medium max-w-2xl mx-auto opacity-80">
-              加入 10,000+ 企业与个人用户的选择，体验前所未有的开卡速度。
-            </p>
-            <div className="flex justify-center pt-4">
-              <Link href="/register" className="px-16 py-6 bg-white text-blue-600 rounded-full font-black text-xl shadow-2xl hover:scale-105 transition-transform">
-                免费创建账号
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Footer */}
-      <footer className="py-20 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
-          <div className="col-span-2 space-y-6">
-            <div className="text-3xl font-black text-blue-600 italic">EPAY</div>
-            <p className="text-slate-400 font-medium max-w-xs">领先的跨境虚拟卡支付解决方案提供商，致力于让全球支付变得简单透明。</p>
-          </div>
-          <div className="space-y-4 text-sm">
-            <h5 className="font-black text-slate-800 uppercase tracking-widest">产品</h5>
-            <div className="flex flex-col gap-3 text-slate-400 font-bold">
-              <Link href="#">虚拟卡方案</Link>
-              <Link href="#">企业支付</Link>
-              <Link href="#">开发者 API</Link>
-            </div>
-          </div>
-          <div className="space-y-4 text-sm">
-            <h5 className="font-black text-slate-800 uppercase tracking-widest">支持</h5>
-            <div className="flex flex-col gap-3 text-slate-400 font-bold">
-              <Link href="#">帮助中心</Link>
-              <Link href="#">常见问题</Link>
-              <Link href="#">联系我们</Link>
-            </div>
-          </div>
-        </div>
+      {/* --- Footer --- */}
+      <footer className="bg-black py-20 rounded-t-[50px] text-center">
+         <h2 className="text-white text-[40px] lg:text-[56px] font-black italic tracking-tighter mb-8 uppercase leading-none">{t.footerTitle}</h2>
+         <Link href="/register" className="inline-block bg-blue-600 text-white px-10 py-4 rounded-full text-base font-black shadow-xl hover:bg-blue-500 uppercase italic tracking-widest transition-all">
+           {t.footerBtn}
+         </Link>
       </footer>
     </div>
   )
